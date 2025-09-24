@@ -1,517 +1,88 @@
 <!doctype html>
 <html lang="en">
+
 <head>
-  <meta charset="utf-8" />
-  <title>Accurate Image → Text (Client-side)</title>
+    <meta charset="utf-8" />
+    <title>Image → Text By- PranitDaphale</title>
 
-  <!-- Tesseract.js -->
-  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js"></script>
-  <!-- OpenCV.js (async load) -->
-  <script async src="https://docs.opencv.org/3.4.0/opencv.js"></script>
+    <!-- Tesseract.js -->
+    <script  src="https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js"></script>
+    <!-- OpenCV.js (load without async to avoid race) -->
+    <script async src="https://docs.opencv.org/4.x/opencv.js"></script>
 
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <style>
-    :root {
-      --bg1: #0f172a;
-      --card: #ffffff;
-      --accent: #0066ff;
-      --accent-2: #00c2ff;
-      --muted: #556574;
-    }
-    html,body { height:100%; margin:0; font-family:Inter,system-ui,Arial; background: linear-gradient(180deg,#07102a 0%, #0f1a35 100%); color:#0b1220; }
-    .wrap { min-height:100%; display:flex; align-items:center; justify-content:center; padding:24px; box-sizing:border-box; }
-    .card { width:100%; max-width:980px; background:var(--card); border-radius:14px; padding:22px; box-shadow:0 10px 40px rgba(2,6,23,.45); }
-    h1 { margin:0 0 8px; font-size:20px; }
-    p.lead { margin:0 0 18px; color:var(--muted); }
-    .controls { display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
-    .btn { background:linear-gradient(90deg,var(--accent),var(--accent-2)); color:white; border:none; padding:10px 16px; border-radius:10px; font-weight:600; cursor:pointer; box-shadow:0 6px 18px rgba(0,96,255,.18); }
-    .btn.alt { background:transparent; border:1px solid #e6eefc; color:#123; }
-    .filelabel { display:inline-block; padding:10px 16px; border-radius:10px; background:#f5f8ff; cursor:pointer; border:1px dashed #dfeeff; color:#083770; font-weight:600; }
-    .status { margin-top:14px; font-size:13px; color:#153556; }
-    .grid { display:grid; grid-template-columns: 1fr 380px; gap:18px; margin-top:18px; }
-    .left { }
-    .preview { background:#fafcff; padding:12px; border-radius:10px; border:1px solid #e7f0ff; text-align:center; }
-    #previewImg { max-width:100%; border-radius:6px; }
-    textarea { width:100%; min-height:420px; resize:vertical; padding:10px; border-radius:8px; border:1px solid #d8e6ff; font-family:monospace; font-size:13px; box-sizing:border-box; }
-    .controls-row { display:flex; gap:8px; margin-top:10px; }
-    .small { font-size:13px; color:var(--muted); }
-    .log { max-height:160px; overflow:auto; font-size:12px; background:#fbfeff; padding:8px; border-radius:8px; border:1px solid #e6f3ff; }
-    footer { text-align:center; margin-top:16px; color:var(--muted); font-size:13px; }
-    .meta { display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; margin-top:12px; }
-    .badge { background:#eef7ff; color:#0a4b82; padding:6px 10px; border-radius:999px; font-weight:600; font-size:13px; }
-    .hidden { display:none; }
-  </style>
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <link rel="stylesheet" href="/style.css">
 </head>
+
 <body>
-  <div class="wrap">
-    <div class="card" role="main" aria-live="polite">
-      <h1>Accurate Image → Text Extractor</h1>
-      <p class="lead">Client-side OCR with advanced preprocessing (OpenCV) + Tesseract.js ensemble. Images stay on the user device — no upload, no server.</p>
+    <div class="wrap">
+        <div class="card" role="main" aria-live="polite">
+            <h1>Image → Text Extractor</h1>
+            <p class="lead">Clean & Accurate Output</p>
 
-      <div class="controls">
-        <label class="filelabel" for="fileInput">📁 Choose image</label>
-        <input id="fileInput" type="file" accept="image/*" style="display:none" />
-        <button id="btnExtract" class="btn">🔍 Extract Text</button>
-        <button id="btnDownload" class="btn alt">⬇️ Download .txt</button>
-        <div class="badge" id="confBadge">Confidence: —</div>
-      </div>
-
-      <div class="status small" id="status">OpenCV: <span id="cvstatus">loading...</span> · Tesseract: <span id="tstatus">loading...</span></div>
-
-      <div class="grid">
-        <div class="left">
-          <div class="preview" id="previewBox">
-            <img id="previewImg" src="" alt="preview" />
-            <div class="small" style="margin-top:8px">Processed preview (best pass will be used)</div>
-          </div>
-
-          <div style="margin-top:12px">
-            <div style="display:flex; gap:8px; align-items:center;">
-              <label><input id="optDeskew" type="checkbox" checked /> Deskew</label>
-              <label><input id="optShowAll" type="checkbox" /> Show all processed previews</label>
-              <label><input id="optNormalize" type="checkbox" checked /> Post clean (normalize whitespace)</label>
+            <div class="controls">
+                <label class="filelabel" for="fileInput">📁 Choose image</label>
+                <input id="fileInput" type="file" accept="image/*" style="display:none" />
+                <button id="btnExtract" class="btn" disabled>🔍 Extract Text</button>
+                <button id="btnDownload" class="btn alt">⬇️ Download .txt</button>
+                <div class="badge" id="confBadge">Confidence: —</div>
             </div>
-          </div>
 
-          <div style="margin-top:12px">
-            <div class="small">Logs:</div>
-            <div id="log" class="log"></div>
-          </div>
-        </div>
+            <div class="status small" id="status">OpenCV: <span id="cvstatus">loading...</span> · Tesseract: <span
+                    id="tstatus">loading...</span></div>
 
-        <div>
-          <div style="display:flex; gap:8px; align-items:center;">
-            <div style="flex:1">
-              <div class="small">Result (copy/edit before saving):</div>
-              <textarea id="resultArea" placeholder="Extracted text will appear here..."></textarea>
+            <div class="grid">
+                <div class="left">
+                    <div class="preview" id="previewBox">
+                        <img id="previewImg" src="" alt="preview" />
+                        <div class="small" style="margin-top:8px">Processed preview (best pass will be used)</div>
+                        <div id="variantsRow" class="variants-row" style="margin-top:8px; display:none;"></div>
+                    </div>
+
+                    <div style="margin-top:12px">
+                        <div style="display:flex; gap:8px; align-items:center;">
+                            <label><input id="optDeskew" type="checkbox" checked /> Deskew</label>
+                            <label><input id="optShowAll" type="checkbox" /> Show all processed previews</label>
+                            <label><input id="optNormalize" type="checkbox" checked /> Post clean (normalize
+                                whitespace)</label>
+                        </div>
+                    </div>
+
+                    <div style="margin-top:12px">
+                        <div class="small">Logs:</div>
+                        <div id="log" class="log"></div>
+                    </div>
+                </div>
+
+                <div>
+                    <div style="display:flex; gap:8px; align-items:center;">
+                        <div style="flex:1">
+                            <div class="small">Result (copy/edit before saving):</div>
+                            <textarea id="resultArea" placeholder="Extracted text will appear here..."></textarea>
+                        </div>
+                    </div>
+
+                    <div class="controls-row" style="margin-top:8px">
+                        <button id="btnCopy" class="btn alt">📋 Copy</button>
+                        <button id="btnClear" class="btn alt">✖ Clear</button>
+                        <button id="btnReprocess" class="btn alt">🔁 Re-run</button>
+                    </div>
+                </div>
             </div>
-          </div>
 
-          <div class="controls-row" style="margin-top:8px">
-            <button id="btnCopy" class="btn alt">📋 Copy</button>
-            <button id="btnClear" class="btn alt">✖ Clear</button>
-            <button id="btnReprocess" class="btn alt">🔁 Re-run</button>
-          </div>
+            <div class="meta">
+                <div class="small">Tip: Use clear scans and set DPI ≥ 200 for best results.</div>
+                <div class="small">© All rights reserved – <a href="https://in.linkedin.com/in/pranitdaphale" target="_blank"> Pranit Daphale</a></div>
+            </div>
         </div>
-      </div>
-
-      <div class="meta">
-        <div class="small">Tip: Use clear scans and set DPI >= 200 for best results.</div>
-        <div class="small">© All rights reserved – Pranit Daphale</div>
-      </div>
     </div>
-  </div>
 
-  <!-- hidden canvases used by OpenCV -->
-  <canvas id="srcCanvas" class="hidden"></canvas>
-  <canvas id="procCanvas" class="hidden"></canvas>
+    <!-- hidden canvases used by OpenCV -->
+    <canvas id="srcCanvas" class="hidden"></canvas>
+    <canvas id="procCanvas" class="hidden"></canvas>
 
-  <script>
-  /**************************************************************
-   * Client-side advanced OCR:
-   * - Waits for OpenCV (opencv.js) and Tesseract.js worker.
-   * - Preprocesses multiple variants (adaptive, Otsu, bilateral).
-   * - Deskews by detecting predominant line angle (HoughLinesP).
-   * - Runs Tesseract on each variant, picks result with highest avg confidence.
-   **************************************************************/
+<script src="script.js"></script>
 
-  // UI elements
-  const fileInput = document.getElementById('fileInput');
-  const btnExtract = document.getElementById('btnExtract');
-  const btnCopy = document.getElementById('btnCopy');
-  const btnDownload = document.getElementById('btnDownload');
-  const btnClear = document.getElementById('btnClear');
-  const btnReprocess = document.getElementById('btnReprocess');
-  const previewImg = document.getElementById('previewImg');
-  const previewBox = document.getElementById('previewBox');
-  const statusEl = document.getElementById('status');
-  const cvStatus = document.getElementById('cvstatus');
-  const tStatus = document.getElementById('tstatus');
-  const logBox = document.getElementById('log');
-  const resultArea = document.getElementById('resultArea');
-  const confBadge = document.getElementById('confBadge');
-  const optDeskew = document.getElementById('optDeskew');
-  const optShowAll = document.getElementById('optShowAll');
-  const optNormalize = document.getElementById('optNormalize');
-
-  // canvases (hidden)
-  const srcCanvas = document.getElementById('srcCanvas');
-  const procCanvas = document.getElementById('procCanvas');
-
-  // state
-  let cvReady = false;
-  let tessReady = false;
-  let worker = null;
-  let lastFile = null;
-
-  // tiny helper log
-  function log(...args) {
-    console.log(...args);
-    let txt = args.map(a => (typeof a === 'string' ? a : JSON.stringify(a))).join(' ');
-    logBox.innerText = txt + "\n" + logBox.innerText;
-  }
-
-  // --- initialize opencv ---
-  function checkOpenCVReady() {
-    if (typeof cv !== 'undefined') {
-      cv['onRuntimeInitialized'] = () => {
-        cvReady = true;
-        cvStatus.innerText = 'ready';
-        log('OpenCV loaded');
-      };
-    } else {
-      // if not yet loaded, poll a bit
-      setTimeout(checkOpenCVReady, 200);
-    }
-  }
-  checkOpenCVReady();
-
-  // --- initialize tesseract worker ---
-  async function initTesseract() {
-    tStatus.innerText = 'loading...';
-    worker = Tesseract.createWorker({
-      logger: m => {
-        // m.progress, m.status
-        tStatus.innerText = m.status || tStatus.innerText;
-        // console.log('tesslog', m);
-      }
-    });
-    await worker.load();
-    await worker.loadLanguage('eng');
-    await worker.initialize('eng');
-    // set some params that help with pages
-    await worker.setParameters({
-      tessedit_pageseg_mode: '3', // default multi-block page segmentation; we'll override per-pass if needed
-      preserve_interword_spaces: '1'
-    });
-    tessReady = true;
-    tStatus.innerText = 'ready';
-    log('Tesseract worker ready');
-  }
-  initTesseract();
-
-  // --- file handling ---
-  document.querySelector('.filelabel').addEventListener('click', () => fileInput.click());
-  fileInput.addEventListener('change', (e) => {
-    lastFile = e.target.files[0] || null;
-    if (lastFile) {
-      const url = URL.createObjectURL(lastFile);
-      previewImg.src = url;
-      resultArea.value = '';
-      confBadge.innerText = 'Confidence: —';
-    }
-  });
-
-  btnCopy.addEventListener('click', () => {
-    resultArea.select();
-    document.execCommand('copy');
-    alert('Text copied to clipboard ✅');
-  });
-
-  btnClear.addEventListener('click', () => {
-    resultArea.value = '';
-    previewImg.src = '';
-    fileInput.value = '';
-    confBadge.innerText = 'Confidence: —';
-  });
-
-  btnDownload.addEventListener('click', () => {
-    const txt = resultArea.value || '';
-    const blob = new Blob([txt], {type:'text/plain'});
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = 'extracted.txt';
-    a.click();
-  });
-
-  btnReprocess.addEventListener('click', () => {
-    if (!lastFile) return alert('Please choose an image first.');
-    doExtract(lastFile);
-  });
-
-  btnExtract.addEventListener('click', () => {
-    if (!lastFile) return alert('Please choose an image first.');
-    doExtract(lastFile);
-  });
-
-  /***********************
-   * Image preprocessing (OpenCV)
-   ***********************/
-  function imgToCanvas(file, canvas) {
-    return new Promise((resolve) => {
-      const img = new Image();
-      img.onload = function() {
-        // set canvas to image dims
-        canvas.width = img.width;
-        canvas.height = img.height;
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0);
-        resolve();
-      };
-      img.src = URL.createObjectURL(file);
-    });
-  }
-
-  // compute skew angle via Hough lines on edges
-  function computeSkewAngle(mat) {
-    // expects grayscale mat
-    try {
-      const edges = new cv.Mat();
-      cv.Canny(mat, edges, 50, 150);
-      const lines = new cv.Mat();
-      // HoughLinesP parameters: rho, theta, threshold, minLineLength, maxLineGap
-      cv.HoughLinesP(edges, lines, 1, Math.PI / 180, 160, mat.cols / 8, 20);
-      const angles = [];
-      for (let i = 0; i < lines.rows; ++i) {
-        const x1 = lines.data32S[i * 4], y1 = lines.data32S[i * 4 + 1];
-        const x2 = lines.data32S[i * 4 + 2], y2 = lines.data32S[i * 4 + 3];
-        const angle = (Math.atan2(y2 - y1, x2 - x1) * 180) / Math.PI;
-        // only near-horizontal lines matter
-        if (Math.abs(angle) < 45) angles.push(angle);
-      }
-      edges.delete(); lines.delete();
-      if (angles.length === 0) return 0;
-      angles.sort((a,b) => a-b);
-      const median = angles[Math.floor(angles.length/2)];
-      return median;
-    } catch (err) {
-      console.warn('skew detection failed', err);
-      return 0;
-    }
-  }
-
-  // rotate mat by angle (degrees)
-  function rotateMat(src, angle) {
-    const center = new cv.Point(src.cols / 2, src.rows / 2);
-    const M = cv.getRotationMatrix2D(center, angle, 1);
-    const dst = new cv.Mat();
-    const dsize = new cv.Size(src.cols, src.rows);
-    cv.warpAffine(src, dst, M, dsize, cv.INTER_LINEAR, cv.BORDER_CONSTANT, new cv.Scalar(255,255,255,255));
-    M.delete();
-    return dst;
-  }
-
-  // create several processed blobs from file using different pipelines
-  async function createProcessedVariants(file, doDeskew=true) {
-    // draw original on srcCanvas
-    await imgToCanvas(file, srcCanvas);
-    // read into OpenCV Mat
-    let src = cv.imread(srcCanvas);
-    // ensure RGBA
-    if (src.channels() === 1) {
-      cv.cvtColor(src, src, cv.COLOR_GRAY2RGBA);
-    }
-    // scale up to help OCR (scale to width 1700px if smaller)
-    const targetMinWidth = 1700;
-    if (src.cols < targetMinWidth) {
-      const scale = targetMinWidth / src.cols;
-      const dsize = new cv.Size(Math.round(src.cols * scale), Math.round(src.rows * scale));
-      const resized = new cv.Mat();
-      cv.resize(src, resized, dsize, 0, 0, cv.INTER_CUBIC);
-      src.delete();
-      src = resized;
-    }
-
-    // convert to grayscale base
-    let gray = new cv.Mat();
-    cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY);
-
-    // optional deskew
-    if (doDeskew) {
-      const angle = computeSkewAngle(gray);
-      if (Math.abs(angle) > 0.35) { // only rotate if meaningful
-        const rotated = rotateMat(gray, -angle);
-        gray.delete();
-        gray = rotated;
-        log('deskewed by', -angle.toFixed(2), 'deg');
-      } else {
-        log('deskew angle negligible', angle.toFixed(2));
-      }
-    }
-
-    // We'll create three variants:
-    // 0 - adaptive gaussian + morphology
-    // 1 - gaussian blur + Otsu
-    // 2 - bilateral + median + adaptive mean
-    const variants = [];
-
-    // Variant 0: equalize + adaptive gaussian
-    try {
-      let v0 = new cv.Mat();
-      cv.equalizeHist(gray, v0);
-      let dst0 = new cv.Mat();
-      cv.adaptiveThreshold(v0, dst0, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY, 21, 10);
-      // morphology to remove tiny noise
-      let kernel = cv.getStructuringElement(cv.MORPH_RECT, new cv.Size(1,1));
-      cv.morphologyEx(dst0, dst0, cv.MORPH_OPEN, kernel);
-      kernel.delete();
-      variants.push(dst0);
-      v0.delete();
-    } catch (e) {
-      log('variant0 failed', e);
-    }
-
-    // Variant 1: blur + Otsu
-    try {
-      let blur = new cv.Mat();
-      cv.GaussianBlur(gray, blur, new cv.Size(3,3), 0, 0, cv.BORDER_DEFAULT);
-      let dst1 = new cv.Mat();
-      cv.threshold(blur, dst1, 0, 255, cv.THRESH_BINARY + cv.THRESH_OTSU);
-      variants.push(dst1);
-      blur.delete();
-    } catch (e) {
-      log('variant1 failed', e);
-    }
-
-    // Variant 2: bilateral + median + adaptive mean
-    try {
-      let bil = new cv.Mat();
-      cv.bilateralFilter(gray, bil, 9, 75, 75, cv.BORDER_DEFAULT);
-      let med = new cv.Mat();
-      cv.medianBlur(bil, med, 3);
-      let dst2 = new cv.Mat();
-      cv.adaptiveThreshold(med, dst2, 255, cv.ADAPTIVE_THRESH_MEAN_C, cv.THRESH_BINARY, 31, 12);
-      variants.push(dst2);
-      bil.delete(); med.delete();
-    } catch (e) {
-      log('variant2 failed', e);
-    }
-
-    // Final: convert each variant mat to a blob (PNG)
-    const blobs = [];
-    for (let i=0;i<variants.length;i++) {
-      // show variant on hidden canvas
-      const c = procCanvas;
-      cv.imshow(c, variants[i]);
-      // optionally show first as preview
-      if (i === 0) previewImg.src = c.toDataURL('image/png');
-      const blob = await new Promise(resolve => c.toBlob(resolve, 'image/png'));
-      blobs.push({ blob, mat: variants[i] });
-    }
-
-    // cleanup
-    gray.delete();
-    src.delete();
-
-    return blobs; // array of {blob, mat}
-  }
-
-  // compute average confidence from tesseract result (words)
-  function avgConfidence(res) {
-    try {
-      const words = res.data && res.data.words ? res.data.words : [];
-      if (words.length === 0) return 0;
-      let s = 0;
-      for (let w of words) s += (w.confidence || 0);
-      return s / words.length;
-    } catch (e) {
-      return 0;
-    }
-  }
-
-  // small clean-up of text (conservative)
-  function cleanText(s) {
-    if (!s) return s;
-    // normalize whitespace and remove weird control chars
-    s = s.replace(/\u200B/g, ''); // zero-width
-    s = s.replace(/[^\S\r\n]+/g, ' '); // collapse spaces but preserve newlines
-    s = s.replace(/[ \t]+\n/g, '\n'); // trailing spaces before newline
-    s = s.replace(/\n{3,}/g, '\n\n');
-    // trim lines
-    s = s.split('\n').map(l => l.trim()).join('\n');
-    return s.trim();
-  }
-
-  // Main extraction: create variants, OCR each, pick best by average confidence
-  async function doExtract(file) {
-    if (!cvReady) return alert('OpenCV not ready yet — please wait a moment and try again.');
-    if (!tessReady) return alert('Tesseract not ready yet — please wait a moment and try again.');
-
-    logBox.innerText = '';
-    statusEl.innerText = 'Preparing images...';
-    confBadge.innerText = 'Confidence: —';
-    resultArea.value = '';
-    previewImg.src = '';
-
-    try {
-      const variants = await createProcessedVariants(file, optDeskew.checked);
-      statusEl.innerText = `Running OCR on ${variants.length} variants...`;
-      log('Created', variants.length, 'variants');
-
-      // ensure worker is initialized
-      if (!worker) {
-        await initTesseract();
-      }
-
-      const results = [];
-
-      for (let i=0;i<variants.length;i++) {
-        const vb = variants[i];
-        // try psm 6 then psm 3 for robustness
-        for (const psm of ['6', '3']) {
-          statusEl.innerText = `OCR: variant ${i+1}/${variants.length} (PSM ${psm})...`;
-          log(`OCR on variant ${i+1} with PSM=${psm}`);
-          await worker.setParameters({ tessedit_pageseg_mode: psm });
-          const res = await worker.recognize(vb.blob);
-          const avg = avgConfidence(res);
-          results.push({ text: res.data && res.data.text ? res.data.text : '', avgConf: avg, variant: i+1, psm });
-          log(`-> variant ${i+1} (psm ${psm}) avgConf=${avg.toFixed(2)} words=${(res.data.words||[]).length}`);
-        }
-      }
-
-      // pick best result by avgConf
-      results.sort((a,b) => b.avgConf - a.avgConf);
-      const best = results[0] || { text: '', avgConf:0 };
-      let out = best.text || '';
-      if (optNormalize.checked) out = cleanText(out);
-      resultArea.value = out;
-      confBadge.innerText = `Confidence: ${best.avgConf ? best.avgConf.toFixed(1) : '—'}`;
-      // update preview to corresponding processed mat (best.variant)
-      if (optShowAll.checked) {
-        // show all variants concatenated (for debugging)
-        let dataUrls = [];
-        for (let i=0;i<variants.length;i++) {
-          cv.imshow(procCanvas, variants[i].mat);
-          dataUrls.push(procCanvas.toDataURL('image/png'));
-        }
-        // show the first for simplicity (the visible preview)
-        previewImg.src = dataUrls[0] || '';
-      } else {
-        // preview the variant used
-        const bestMat = variants[Math.max(0,best.variant-1)].mat;
-        cv.imshow(procCanvas, bestMat);
-        previewImg.src = procCanvas.toDataURL('image/png');
-      }
-
-      statusEl.innerText = 'Done.';
-      log('Best result:', `variant=${best.variant} psm=${best.psm} conf=${best.avgConf.toFixed(2)}`);
-
-      // cleanup mats
-      for (let v of variants) try { v.mat.delete(); } catch(e){}
-
-    } catch (err) {
-      console.error(err);
-      alert('Error during processing: ' + (err.message || err));
-      statusEl.innerText = 'Error';
-    }
-  }
-
-  // Wait until OpenCV ready (in case it loaded after script)
-  (function waitForCv() {
-    if (typeof cv === 'undefined' || !cv['onRuntimeInitialized']) {
-      setTimeout(waitForCv, 200);
-    } else {
-      // ok
-      cvStatus.innerText = 'ready';
-      log('OpenCV ready (final)');
-    }
-  })();
-
-  // final note: clean up worker when navigating away (optional)
-  window.addEventListener('unload', async () => {
-    try { if (worker) await worker.terminate(); } catch(e) {}
-  });
-
-  </script>
 </body>
+
 </html>

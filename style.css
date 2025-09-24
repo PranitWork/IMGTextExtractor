@@ -1,0 +1,191 @@
+
+        :root {
+            --bg1: #0f172a;
+            --card: #ffffff;
+            --accent: #0066ff;
+            --accent-2: #00c2ff;
+            --muted: #556574;
+        }
+
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            font-family: Inter, system-ui, Arial;
+            background: linear-gradient(180deg, #07102a 0%, #0f1a35 100%);
+            color: #0b1220;
+        }
+
+        .wrap {
+            min-height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            box-sizing: border-box;
+        }
+
+        .card {
+            width: 100%;
+            max-width: 980px;
+            background: var(--card);
+            border-radius: 14px;
+            padding: 22px;
+            box-shadow: 0 10px 40px rgba(2, 6, 23, .45);
+        }
+
+        h1 {
+            margin: 0 0 8px;
+            font-size: 20px;
+        }
+
+        p.lead {
+            margin: 0 0 18px;
+            color: var(--muted);
+        }
+
+        .controls {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            background: linear-gradient(90deg, var(--accent), var(--accent-2));
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 6px 18px rgba(0, 96, 255, .18);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .btn.alt {
+            background: transparent;
+            border: 1px solid #e6eefc;
+            color: #123;
+        }
+
+        .filelabel {
+            display: inline-block;
+            padding: 10px 16px;
+            border-radius: 10px;
+            background: #f5f8ff;
+            cursor: pointer;
+            border: 1px dashed #dfeeff;
+            color: #083770;
+            font-weight: 600;
+        }
+
+        .status {
+            margin-top: 14px;
+            font-size: 13px;
+            color: #153556;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 380px;
+            gap: 18px;
+            margin-top: 18px;
+        }
+
+        .preview {
+            background: #fafcff;
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid #e7f0ff;
+            text-align: center;
+        }
+
+        #previewImg {
+            max-width: 100%;
+            border-radius: 6px;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 420px;
+            resize: vertical;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #d8e6ff;
+            font-family: monospace;
+            font-size: 13px;
+            box-sizing: border-box;
+        }
+
+        .controls-row {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .small {
+            font-size: 13px;
+            color: var(--muted);
+        }
+
+        .log {
+            max-height: 160px;
+            overflow: auto;
+            font-size: 12px;
+            background: #fbfeff;
+            padding: 8px;
+            border-radius: 8px;
+            border: 1px solid #e6f3ff;
+            white-space: pre-wrap;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 16px;
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 12px;
+        }
+
+        .badge {
+            background: #eef7ff;
+            color: #0a4b82;
+            padding: 6px 10px;
+            border-radius: 999px;
+            font-weight: 600;
+            font-size: 13px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .variants-row {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+            flex-wrap: wrap;
+        }
+
+        .variant-thumb {
+            width: 96px;
+            height: 96px;
+            object-fit: contain;
+            border-radius: 6px;
+            border: 1px solid #e6f3ff;
+            background: #fff;
+            padding: 4px;
+        }
