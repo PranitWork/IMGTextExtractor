@@ -309,7 +309,8 @@ async function doExtract(file) {
             },
             load_fast: false, // slightly better accuracy
             tessedit_pageseg_mode: psm,
-            tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.,:-() '
+            tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.,:-()/%&$ '
+
           }).then(res => ({
             text: res.data.text || '',
             avgConf: res.data.confidence || 0,
